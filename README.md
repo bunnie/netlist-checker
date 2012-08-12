@@ -42,7 +42,7 @@ parser functionality and it doesn't cover comprehensive test cases.
 Here are some examples of the checker in action:
 
 --------------------------------------------------
-
+`
 netlist> drc
 single pin nets: 
 ['NET_ERROR']
@@ -66,9 +66,9 @@ Similarly-named nets found:
  ['SD2_CMD', 'SD2_CD']]
 Orphaned differential net syntax found (there is either a lone _P or _N variant of this net): 
 HDMI_HPD_LV
-
+`
 --------------------------------------------------
-
+`
 netlist> cnt
 {1: ['NET_ERROR'],
  2: ['ANA_IN0',
@@ -94,9 +94,9 @@ Number of 936 pin nets: 1
 Number of 42 pin nets: 1
 Number of 43 pin nets: 1
 Number of 73 pin nets: 1
-
+`
 --------------------------------------------------
-
+`
 netlist> list BATT_PWR
 Components attached to net 'BATT_PWR':
 C11N: 0.1uF, 25V, X5R
@@ -109,9 +109,9 @@ C19L: 0.1uF, 25V, X5R
 D10N: SSB44-E3/52T
 J10N: MOLEX 87703-0001 male
 ...
-
+`
 --------------------------------------------------
-
+`
 netlist> dbg
 > /home/bunnie/work/netlist-checker/netlist-checker.py(429)<module>()
 -> print "Netlist inspector v0.1"
@@ -120,3 +120,4 @@ netlist> dbg
 (Pdb) pprint.pprint(pinCount[1])
 ['NET_ERROR']
 (Pdb) 
+`
