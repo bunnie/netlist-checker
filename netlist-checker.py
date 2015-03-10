@@ -428,7 +428,7 @@ buildCompDict(renamed)
 pinCount = countPinsPerNet(netDict)
 
 ## interact with users
-print "Netlist inspector v0.1"
+print "Netlist inspector v0.2"
 
 while True:
     cmd = raw_input( "netlist> " )
