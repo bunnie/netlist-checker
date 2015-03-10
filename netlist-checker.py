@@ -406,7 +406,12 @@ f = open(filename, 'r')
 edif = f.read()
 
 sys.stderr.write( "parsing " + filename + " (may take a while for large files)...\n" )
-sexpr = sexp.parseString(edif, parseAll=True)
+try:
+    sexpr = sexp.parseString(edif, parseAll=True)
+except:
+    print "Parsing error:", sys.exc_info()[0]
+    print "\n >>> Please check that no part strings or descriptions have double quotes (\") in them. <<<\n"
+    raise
 netlist = sexpr.asList()
 
 #pprint.pprint(netlist)
