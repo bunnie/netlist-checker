@@ -378,6 +378,21 @@ def listNetComps(tgtNet):
     else:
         print "Selected net \'" + tgtNet + "\' not found in netlist"
 
+def extractMigenFpga(tgtComp):
+    iolist = []
+    for key_net in netDict:
+        pinList = netDict[key_net]
+        index = 1
+        while index < len(pinList):
+            if tgtComp == pinList[index][2][1]:
+                iolist.append([key_net, pinList[index][1]])
+            index += 1
+    iolist.sort()
+    print "_io = ["
+    for netkeys in iolist:
+        print '    ("' + netkeys[0].lower() + '", 0, Pins("' + netkeys[1] + '"), IOStandard("LVCMOS33")),'
+    print "]"
+
 ### actual code
 
 # we want to assemble data into the following structure:
@@ -428,7 +443,7 @@ buildCompDict(renamed)
 pinCount = countPinsPerNet(netDict)
 
 ## interact with users
-print "Netlist inspector v0.2"
+print "Netlist inspector v0.3"
 
 while True:
     cmd = raw_input( "netlist> " )
@@ -475,6 +490,13 @@ while True:
             print "Not enough arguments, aborting"
             continue
         listNetComps(tgtNet)
+    elif( cmd.split()[0].lower() == "fpga" ):
+        if (len(cmd.split()) > 1):
+            tgtComp = cmd.split()[1]
+        else:
+            print "Not enough arguments, aborting"
+            continue
+        extractMigenFpga(tgtComp)
     else:
         print "command help: "
         print " npn <n> -- print nets with <n> pins"
@@ -482,6 +504,7 @@ while True:
         print " cnt -- count and report pins per net"
         print " drc <0.n> -- drc checks with Levenshtein tolerance of <0.n>. Default is 0.1, range is 0-1, with smaller being stricter; recommended values are 0.1 or 0.11"
         print " list <net> -- list components on net <net>"
+        print " fpga <comp> -- extract Migen IO constraints for FPGA with designator <comp>"
         print " q -- quit the program"
         print " dbg -- break into the debugger"
 
