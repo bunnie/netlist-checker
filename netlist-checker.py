@@ -297,7 +297,7 @@ netDict = {}
 def buildNetDict(netlist):
     for expr in netlist:
         if 'Net' in expr and expr[0] == 'Net':
-            pprint.pprint(expr)
+            # pprint.pprint(expr)
             netDict[expr[1]] = expr[2]
             # import pdb; pdb.set_trace()
         elif type(expr) is list:
@@ -418,7 +418,7 @@ if( len(sys.argv) == 4 ):
     of = open(ofname, 'w')
     sys.stdout = of
 
-f = open(filename, 'r')
+f = open(filename, 'r', errors='ignore')
 edif = f.read()
 
 sys.stderr.write( "parsing " + filename + " (may take a while for large files)...\n" )
