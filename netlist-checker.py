@@ -1,3 +1,5 @@
+#! /usr/bin/env python3
+
 # edifToUcf.py
 #
 # based upon sexpParser.py by Paul McGuire (copyright 2007-2011)
@@ -9,6 +11,9 @@
 # Altium Designer 10
 #
 # Andrew 'bunnie' Huang, copyright 2012, BSD license
+
+import sys
+sys.setrecursionlimit(1500)
 
 """
 BNF reference: http://theory.lcs.mit.edu/~rivest/sexp.txt
@@ -153,7 +158,7 @@ def netPrint1(netlist, level):
         if isinstance(expr, list):
             netPrint1(expr, level+1)
         else:
-            print " "*level*2, expr
+            print(" "*level*2, expr)
 
 # this procedure determins if a list has any nested lists inside of it.
 # returns true if there are, false if there are no list elements inside the list
@@ -263,9 +268,9 @@ def netPrintUCF(netlist, designator):
             if( extraNets ):
                 printLine = "# " + printLine
                 printStd = "# " + printStd
-            print printLine
+            print(printLine)
             if( len(printStd) > 0 ):
-                print printStd
+                print(printStd)
 
 ### Run tests
 t = None
@@ -274,14 +279,14 @@ t = None
 alltests = []  # no tests
 
 for t in alltests:
-    print '-'*50
-    print t
+    print('-'*50)
+    print(t)
     try:
         sexpr = sexp.parseString(t, parseAll=True)
         pprint.pprint(sexpr.asList())
-    except ParseFatalException, pfe:
-        print "Error:", pfe.msg
-        print pfe.markInputline('^')
+    except ParseFatalException as pfe:
+        print("Error:", pfe.msg)
+        print(pfe.markInputline('^'))
     print
 
 ###################################
@@ -291,31 +296,27 @@ for t in alltests:
 netDict = {}
 def buildNetDict(netlist):
     for expr in netlist:
-        if(isinstance(expr, list)):
-           if(isinstance(expr[0], basestring)):
-               if( expr[0] == "Net" ):
-#                   pprint.pprint(expr)
-                   netDict[expr[1]] = expr[2];
-#                   import pdb; pdb.set_trace()
-
-           buildNetDict(expr)
+        if 'Net' in expr and expr[0] == 'Net':
+            pprint.pprint(expr)
+            netDict[expr[1]] = expr[2]
+            # import pdb; pdb.set_trace()
+        elif type(expr) is list:
+            buildNetDict(expr)
 
 def findComment(propList):
     for key in propList:
         if key[0] == 'Property' and len(key) == 3:
             if key[1] == 'Comment':
                 return key[2][1]
-        
+
 compDict = {}
 def buildCompDict(netlist):
     for expr in netlist:
-        if(isinstance(expr, list)):
-           if(isinstance(expr[0], basestring)):
-               if( expr[0] == "Instance" ):
-#                   import pdb; pdb.set_trace()
-                   compDict[expr[1]] = findComment(expr);
-
-           buildCompDict(expr)
+        if 'Instance' in expr:
+            # import pdb; pdb.set_trace()
+            compDict[expr[1]] = findComment(expr)
+        elif type(expr) is list:
+            buildCompDict(expr)
 
 
 def countPinsPerNet(netDict_):
@@ -358,25 +359,25 @@ def findSimilarNets(netDict_, tol):
 
     similarNets.sort()
 
-    print "Similarly-named nets found: "
+    print("Similarly-named nets found: ")
     pprint.pprint(similarNets)
-    print "Orphaned differential net syntax found (there is either a lone _P or _N variant of this net): "
+    print("Orphaned differential net syntax found (there is either a lone _P or _N variant of this net): ")
     for key in diffNets:
         if (diffNets[key]) % 2 != 0:
-            print key
+            print(key)
 
 def listNetComps(tgtNet):
     if tgtNet in netDict:
-        print "Components attached to net \'" + tgtNet + "\':"
+        print("Components attached to net \'" + tgtNet + "\':")
         pinlist = netDict[tgtNet]
         index = 1
         while index < len(pinlist):
             # pin lists are well-formed, so access is safe to hard-code...
             designator = pinlist[index][2][1] 
             index += 1
-            print designator + ": " + compDict[designator]
+            print(designator + ": " + compDict[designator])
     else:
-        print "Selected net \'" + tgtNet + "\' not found in netlist"
+        print("Selected net \'" + tgtNet + "\' not found in netlist")
 
 def extractMigenFpga(tgtComp):
     iolist = []
@@ -388,10 +389,10 @@ def extractMigenFpga(tgtComp):
                 iolist.append([key_net, pinList[index][1]])
             index += 1
     iolist.sort()
-    print "_io = ["
+    print("_io = [")
     for netkeys in iolist:
-        print '    ("' + netkeys[0].lower() + '", 0, Pins("' + netkeys[1] + '"), IOStandard("LVCMOS33")),'
-    print "]"
+        print('    ("' + netkeys[0].lower() + '", 0, Pins("' + netkeys[1] + '"), IOStandard("LVCMOS33")),')
+    print("]")
 
 ### actual code
 
@@ -408,7 +409,7 @@ def extractMigenFpga(tgtComp):
 import Levenshtein as lev
 
 if( not (len(sys.argv) == 2 ) ):
-    print "Usage: " + sys.argv[0] + " <edif_filename>"
+    print("Usage: " + sys.argv[0] + " <edif_filename>")
     sys.exit(0)
 filename = sys.argv[1]
 
@@ -424,18 +425,18 @@ sys.stderr.write( "parsing " + filename + " (may take a while for large files)..
 try:
     sexpr = sexp.parseString(edif, parseAll=True)
 except:
-    print "Parsing error:", sys.exc_info()[0]
-    print "\n >>> Please check that no part strings or descriptions have double quotes (\") in them. <<<\n"
+    print("Parsing error:", sys.exc_info()[0])
+    print("\n >>> Please check that no part strings or descriptions have double quotes (\") in them. <<<\n")
     raise
 netlist = sexpr.asList()
 
 #pprint.pprint(netlist)
 
-print "processing rename elements..."
+print("processing rename elements...")
 renamed = netRename(netlist, [])
 
 ## build internal databases
-print "building internal databases..."
+print("building internal databases...")
 buildNetDict(renamed)
 buildCompDict(renamed)
 
@@ -443,70 +444,70 @@ buildCompDict(renamed)
 pinCount = countPinsPerNet(netDict)
 
 ## interact with users
-print "Netlist inspector v0.3"
+print("Netlist inspector v0.3")
 
 while True:
-    cmd = raw_input( "netlist> " )
+    cmd = input( "netlist> " )
     if( len(cmd) == 0 ):
         continue
     if( cmd.lower() == "cnt" ):
         pprint.pprint(pinCount)
         for keys in pinCount:
-            print "Number of " + str(keys) + " pin nets: " + str(len(pinCount[keys]))
+            print("Number of " + str(keys) + " pin nets: " + str(len(pinCount[keys])))
     elif( cmd.lower() == "q" ):
         sys.exit(0)
     elif( cmd.lower() == "dbg" ):
         import pdb; pdb.set_trace()
     elif( cmd.split()[0].lower() == "drc" ):
-        print "single pin nets: "
+        print("single pin nets: ")
         if '1' in pinCount:
             pprint.pprint(pinCount[1])
         else:
-            print "No single pin nets found"
+            print("No single pin nets found")
         if (len(cmd.split()) > 1):
             tolerance = cmd.split()[1]
             if float(tolerance) < 0.0 or float(tolerance) > 1.0:
-                print "tolerance argument is out of range, setting to 0.11"
+                print("tolerance argument is out of range, setting to 0.11")
                 tolerance = 0.11
         else:
             tolerance = 0.1
-        print "Typo candidates: "
+        print("Typo candidates: ")
         findSimilarNets(netDict, tolerance)
         # insert other checks here
     elif( cmd.lower() == "spn" ):
-        print "single pin nets: "
+        print("single pin nets: ")
         if '1' in pinCount:
             pprint.pprint(pinCount[1])
         else:
-            print "No single pin nets found"
+            print("No single pin nets found")
     elif( cmd.split()[0].lower() == "npn" ):
         numnets = cmd.split()[1]
-        print "displaying " + str(len(pinCount.get(int(numnets), ""))) + " nets with " + numnets + " pins:"
+        print("displaying " + str(len(pinCount.get(int(numnets), ""))) + " nets with " + numnets + " pins:")
         pprint.pprint(pinCount.get(int(numnets), "(no nets found)"))
     elif( cmd.split()[0].lower() == "list" ):
         if (len(cmd.split()) > 1):
             tgtNet = cmd.split()[1]
         else:
-            print "Not enough arguments, aborting"
+            print("Not enough arguments, aborting")
             continue
         listNetComps(tgtNet)
     elif( cmd.split()[0].lower() == "fpga" ):
         if (len(cmd.split()) > 1):
             tgtComp = cmd.split()[1]
         else:
-            print "Not enough arguments, aborting"
+            print("Not enough arguments, aborting")
             continue
         extractMigenFpga(tgtComp)
     else:
-        print "command help: "
-        print " npn <n> -- print nets with <n> pins"
-        print " spn -- report single pin nets only"
-        print " cnt -- count and report pins per net"
-        print " drc <0.n> -- drc checks with Levenshtein tolerance of <0.n>. Default is 0.1, range is 0-1, with smaller being stricter; recommended values are 0.1 or 0.11"
-        print " list <net> -- list components on net <net>"
-        print " fpga <comp> -- extract Migen IO constraints for FPGA with designator <comp>"
-        print " q -- quit the program"
-        print " dbg -- break into the debugger"
+        print("command help: ")
+        print(" npn <n> -- print nets with <n> pins")
+        print(" spn -- report single pin nets only")
+        print(" cnt -- count and report pins per net")
+        print(" drc <0.n> -- drc checks with Levenshtein tolerance of <0.n>. Default is 0.1, range is 0-1, with smaller being stricter; recommended values are 0.1 or 0.11")
+        print(" list <net> -- list components on net <net>")
+        print(" fpga <comp> -- extract Migen IO constraints for FPGA with designator <comp>")
+        print(" q -- quit the program")
+        print(" dbg -- break into the debugger")
 
 #### end of code
 
